@@ -22,24 +22,26 @@ import com.twitter.algebird.{Aggregator, Moments}
 
 object StandardScaler {
   // Missing value = if (withMean) 0.0 else mean
-  def apply(name: String,
-            withStd: Boolean = true,
-            withMean: Boolean = false): Transformer[Double, Moments, (Double, Double)] =
+  def apply[A: Numeric](name: String, withStd: Boolean = true, withMean: Boolean = false)
+  : Transformer[A, Moments, (Double, Double)] =
     new StandardScaler(name, withStd, withMean)
 }
 
-private class StandardScaler(name: String, val withStd: Boolean, val withMean: Boolean)
-  extends OneDimensional[Double, Moments, (Double, Double)](name) {
-  override val aggregator: Aggregator[Double, Moments, (Double, Double)] =
-    Aggregators.from[Double](Moments(_)).to(r => (r.mean, r.stddev))
-  override def buildFeatures(a: Option[Double], c: (Double, Double),
+private class StandardScaler[@specialized (Int, Long, Float, Double) A: Numeric]
+(name: String, val withStd: Boolean, val withMean: Boolean)
+  extends OneDimensional[A, Moments, (Double, Double)](name) {
+  private val num = implicitly[Numeric[A]]
+  override val aggregator: Aggregator[A, Moments, (Double, Double)] =
+    Aggregators.from[A](x => Moments(num.toDouble(x))).to(r => (r.mean, r.stddev))
+  override def buildFeatures(a: Option[A], c: (Double, Double),
                              fb: FeatureBuilder[_]): Unit = a match {
     case Some(x) =>
+      val v = num.toDouble(x)
       val r = (withStd, withMean) match {
-        case (true, true) => (x - c._1) / c._2
-        case (true, false) => (x - c._1) / c._2 + c._1
-        case (false, true) => x - c._1
-        case (false, false) => x
+        case (true, true) => (v - c._1) / c._2
+        case (true, false) => (v - c._1) / c._2 + c._1
+        case (false, true) => v - c._1
+        case (false, false) => v
       }
       fb.add(r)
     case None => fb.add(if (withMean) 0.0 else c._1)

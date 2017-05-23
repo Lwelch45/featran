@@ -32,24 +32,22 @@ object FeatureSpecSpec extends Properties("FeatureSpec") {
     Gen.listOfN(100, genRecord)
   }
 
-  private val id = Identity("id")
-
   property("required") = Prop.forAll { xs: Seq[Record] =>
-    val f = FeatureSpec.of[Record].required(_.d)(id).extract(xs)
+    val f = FeatureSpec.of[Record].required(_.d)(Identity("id")).extract(xs)
     Prop.all(
       f.featureNames == Seq(Seq("id")),
       f.featureValues[Array[Double]].map(_.toSeq) == xs.map(r => Seq(r.d)))
   }
 
   property("optional") = Prop.forAll { xs: Seq[Record] =>
-    val f = FeatureSpec.of[Record].optional(_.optD)(id).extract(xs)
+    val f = FeatureSpec.of[Record].optional(_.optD)(Identity("id")).extract(xs)
     Prop.all(
       f.featureNames == Seq(Seq("id")),
       f.featureValues[Array[Double]].map(_.toSeq) == xs.map(r => Seq(r.optD.getOrElse(0.0))))
   }
 
   property("default") = Prop.forAll { xs: Seq[Record] =>
-    val f = FeatureSpec.of[Record].optional(_.optD, Some(0.5))(id).extract(xs)
+    val f = FeatureSpec.of[Record].optional(_.optD, Some(0.5))(Identity("id")).extract(xs)
     Prop.all(
       f.featureNames == Seq(Seq("id")),
       f.featureValues[Array[Double]].map(_.toSeq) == xs.map(r => Seq(r.optD.getOrElse(0.5))))
@@ -57,7 +55,7 @@ object FeatureSpecSpec extends Properties("FeatureSpec") {
 
   property("nones") = Prop.forAll { xs: Seq[Record] =>
     val f = FeatureSpec.of[Record]
-      .optional(_.optD, Some(0.5))(id)
+      .optional(_.optD, Some(0.5))(Identity("id"))
       .extract(xs.map(_.copy(optD = None)))
     Prop.all(
       f.featureNames == Seq(Seq("id")),

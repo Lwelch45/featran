@@ -22,14 +22,16 @@ import com.twitter.algebird.{Aggregator, Max}
 
 object MaxAbsScaler {
   // Missing value = 0.0
-  def apply(name: String): Transformer[Double, Max[Double], Double] = new MaxAbsScaler(name)
+  def apply[A: Numeric](name: String): Transformer[A, Max[Double], Double] = new MaxAbsScaler(name)
 }
 
-private class MaxAbsScaler(name: String) extends OneDimensional[Double, Max[Double], Double](name) {
-  override val aggregator: Aggregator[Double, Max[Double], Double] =
-    Aggregators.from[Double](x => Max(math.abs(x))).to(_.get)
-  override def buildFeatures(a: Option[Double], c: Double, fb: FeatureBuilder[_]): Unit = a match {
-    case Some(x) => fb.add(x / c)
+private class MaxAbsScaler[@specialized (Int, Long, Float, Double) A: Numeric](name: String)
+  extends OneDimensional[A, Max[Double], Double](name) {
+  private val num = implicitly[Numeric[A]]
+  override val aggregator: Aggregator[A, Max[Double], Double] =
+    Aggregators.from[A](x => Max(math.abs(num.toDouble(x)))).to(_.get)
+  override def buildFeatures(a: Option[A], c: Double, fb: FeatureBuilder[_]): Unit = a match {
+    case Some(x) => fb.add(num.toDouble(x) / c)
     case None => fb.skip()
   }
 }

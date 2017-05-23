@@ -22,7 +22,7 @@ import com.twitter.algebird.Aggregator
 import org.apache.commons.math3.util.CombinatoricsUtils
 
 object PolynomialExpansion {
-  def apply(name: String, degree: Int = 2): Transformer[Array[Double], Int, Int] =
+  def apply[A: Numeric](name: String, degree: Int = 2): Transformer[Array[A], Int, Int] =
     new PolynomialExpansion(name, degree)
 
   def expand(v: Array[Double], degree: Int): Array[Double] = {
@@ -67,15 +67,17 @@ object PolynomialExpansion {
   }
 }
 
-private class PolynomialExpansion(name: String, val degree: Int)
-  extends Transformer[Array[Double], Int, Int](name) {
+private class PolynomialExpansion[@specialized (Int, Long, Float, Double) A: Numeric]
+(name: String, val degree: Int)
+  extends Transformer[Array[A], Int, Int](name) {
   require(degree >= 1, "degree must be >= 1")
-  override val aggregator: Aggregator[Array[Double], Int, Int] = Aggregators.arrayLength
+  private val num = implicitly[Numeric[A]]
+  override val aggregator: Aggregator[Array[A], Int, Int] = Aggregators.arrayLength
   override def featureDimension(c: Int): Int = PolynomialExpansion.getPolySize(c, degree) - 1
   override def featureNames(c: Int): Seq[String] = (0 until featureDimension(c)).map(name + "_" + _)
-  override def buildFeatures(a: Option[Array[Double]], c: Int,
+  override def buildFeatures(a: Option[Array[A]], c: Int,
                              fb: FeatureBuilder[_]): Unit = a match {
-    case Some(x) => PolynomialExpansion.expand(x, degree).foreach(fb.add)
+    case Some(x) => PolynomialExpansion.expand(x.map(num.toDouble), degree).foreach(fb.add)
     case None => (0 until featureDimension(c)).foreach(_ => fb.skip())
   }
 }

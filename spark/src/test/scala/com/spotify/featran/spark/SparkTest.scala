@@ -30,7 +30,7 @@ class SparkTest extends FlatSpec with Matchers {
     val sc = new SparkContext("local[4]", "test")
     val f = FeatureSpec.of[(String, Int)]
       .required(_._1)(OneHotEncoder("one_hot"))
-      .required(_._2.toDouble)(MinMaxScaler("min_max"))
+      .required(_._2)(MinMaxScaler("min_max"))
       .extract(sc.parallelize(data))
     f.featureNames.collect() shouldBe Array(Seq(
       "one_hot_a",

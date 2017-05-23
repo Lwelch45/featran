@@ -22,21 +22,23 @@ import com.twitter.algebird.{Aggregator, Max, Min}
 
 object MinMaxScaler {
   // Missing value = min
-  def apply(name: String,
-            min: Double = 0.0,
-            max: Double = 1.0): Transformer[Double, (Min[Double], Max[Double]), (Double, Double)] =
+  def apply[A: Numeric](name: String, min: Double = 0.0, max: Double = 1.0)
+  : Transformer[A, (Min[Double], Max[Double]), (Double, Double)] =
     new MinMaxScaler(name, min, max)
 }
 
-private class MinMaxScaler(name: String, val min: Double, val max: Double)
-  extends OneDimensional[Double, (Min[Double], Max[Double]), (Double, Double)](name) {
+private class MinMaxScaler[@specialized (Int, Long, Float, Double) A: Numeric]
+(name: String, val min: Double, val max: Double)
+  extends OneDimensional[A, (Min[Double], Max[Double]), (Double, Double)](name) {
   require(max > min, "max must be > min")
-
-  override val aggregator: Aggregator[Double, (Min[Double], Max[Double]), (Double, Double)] =
-    Aggregators.from[Double](x => (Min(x), Max(x))).to(r => (r._1.get, r._2.get - r._1.get))
-  override def buildFeatures(a: Option[Double], c: (Double, Double),
+  private val num = implicitly[Numeric[A]]
+  override val aggregator: Aggregator[A, (Min[Double], Max[Double]), (Double, Double)] =
+    Aggregators
+      .from[A](x => (Min(num.toDouble(x)), Max(num.toDouble(x))))
+      .to(r => (r._1.get, r._2.get - r._1.get))
+  override def buildFeatures(a: Option[A], c: (Double, Double),
                              fb: FeatureBuilder[_]): Unit = a match {
-    case Some(x) => fb.add((x - c._1) / c._2 * (max - min) + min)
+    case Some(x) => fb.add((num.toDouble(x) - c._1) / c._2 * (max - min) + min)
     case None => fb.add(min)
   }
 }

@@ -23,7 +23,7 @@ import com.twitter.algebird.{Aggregator, Semigroup}
 // TODO: port more transformers from Spark
 // https://spark.apache.org/docs/2.1.0/ml-features.html
 
-abstract class Transformer[A, B, C](val name: String) extends Serializable {
+abstract class Transformer[-A, B, C](val name: String) extends Serializable {
 
   val aggregator: Aggregator[A, B, C]
 
@@ -87,8 +87,8 @@ object Aggregators {
     }
   }
 
-  val arrayLength: Aggregator[Array[Double], Int, Int] = new Aggregator[Array[Double], Int, Int] {
-    override def prepare(input: Array[Double]): Int = input.length
+  def arrayLength[A]: Aggregator[Array[A], Int, Int] = new Aggregator[Array[A], Int, Int] {
+    override def prepare(input: Array[A]): Int = input.length
     override def semigroup: Semigroup[Int] = Semigroup.from { (x, y) =>
       require(x == y)
       x

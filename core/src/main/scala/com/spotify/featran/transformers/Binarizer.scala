@@ -19,10 +19,12 @@ package com.spotify.featran.transformers
 
 object Binarizer {
   // Missing value = 0.0
-  def apply(name: String, threshold: Double = 0.0): Transformer[Double, Unit, Unit] =
+  def apply[A: Numeric](name: String, threshold: Double = 0.0): Transformer[A, Unit, Unit] =
     new Binarizer(name, threshold)
 }
 
-private class Binarizer(name: String, val threshold: Double) extends MapOne[Double](name) {
-  override def map(a: Double): Double = if (a > threshold) 1.0 else 0.0
+private class Binarizer[@specialized (Int, Long, Float, Double) A: Numeric]
+(name: String, val threshold: Double) extends MapOne[A](name) {
+  private val num = implicitly[Numeric[A]]
+  override def map(a: A): Double = if (num.toDouble(a) > threshold) 1.0 else 0.0
 }

@@ -29,7 +29,7 @@ class ScioTest extends PipelineSpec {
     runWithContext { sc =>
       val f = FeatureSpec.of[(String, Int)]
         .required(_._1)(OneHotEncoder("one_hot"))
-        .required(_._2.toDouble)(MinMaxScaler("min_max"))
+        .required(_._2)(MinMaxScaler("min_max"))
         .extract(sc.parallelize(data))
       f.featureNames should containSingleValue (Seq(
         "one_hot_a",

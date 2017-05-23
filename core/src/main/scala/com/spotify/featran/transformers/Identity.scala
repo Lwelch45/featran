@@ -19,9 +19,11 @@ package com.spotify.featran.transformers
 
 object Identity {
   // Missing value = 0.0
-  def apply(name: String): Transformer[Double, Unit, Unit] = new Identity(name)
+  def apply[A: Numeric](name: String): Transformer[A, Unit, Unit] = new Identity(name)
 }
 
-private class Identity(name: String) extends MapOne[Double](name) {
-  override def map(a: Double): Double = a
+private class Identity[@specialized (Int, Long, Float, Double) A: Numeric](name: String)
+  extends MapOne[A](name) {
+  private val num = implicitly[Numeric[A]]
+  override def map(a: A): Double = num.toDouble(a)
 }
