@@ -20,6 +20,7 @@ val breezeVersion = "0.13.1"
 val circeVersion = "0.8.0"
 val commonsMathVersion = "3.6.1"
 val flinkVersion = "1.2.0"
+val guavaVersion = "20.0"
 val hadoopVersion = "2.8.0"
 val scalacheckVersion = "1.13.5"
 val scalatestVersion = "3.0.1"
@@ -95,6 +96,7 @@ lazy val core: Project = Project(
   commonSettings,
   description := "Feature Transformers",
   libraryDependencies ++= Seq(
+    "com.google.guava" % "guava" % guavaVersion,
     "com.twitter" %% "algebird-core" % algebirdVersion,
     "org.apache.commons" % "commons-math3" % commonsMathVersion,
     "org.scalanlp" %% "breeze" % breezeVersion,
