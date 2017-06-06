@@ -27,6 +27,7 @@ val scalatestVersion = "3.0.1"
 val scaldingVersion = "0.17.0"
 val scioVersion = "0.3.1"
 val sparkVersion = "2.1.1"
+val tensorflowVersion = "1.1.0"
 
 val commonSettings = Seq(
   organization := "com.spotify",
@@ -85,7 +86,8 @@ lazy val root: Project = Project(
   flink,
   scalding,
   scio,
-  spark
+  spark,
+  tensorflow
 )
 
 lazy val core: Project = Project(
@@ -160,6 +162,19 @@ lazy val spark: Project = Project(
   description := "Feature Transformers - Spark",
   libraryDependencies ++= Seq(
     "org.apache.spark" %% "spark-core" % sparkVersion % "provided",
+    "org.scalatest" %% "scalatest" % scalatestVersion % "test"
+  )
+).dependsOn(core)
+
+lazy val tensorflow: Project = Project(
+  "tensorflow",
+  file("tensorflow")
+).settings(
+  moduleName := "featran-tensorflow",
+  commonSettings,
+  description := "Feature Transformers - TensorFlow",
+  libraryDependencies ++= Seq(
+    "org.tensorflow" % "proto" % tensorflowVersion,
     "org.scalatest" %% "scalatest" % scalatestVersion % "test"
   )
 ).dependsOn(core)
